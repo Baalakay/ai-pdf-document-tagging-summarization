@@ -21,7 +21,7 @@ function App() {
   const [filterTags, setFilterTags] = useState<string[]>([]);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [tagGroups, setTagGroups] = useState<TagGroup[]>([]);
-  const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "analyzing">("idle");
+  const [uploadStatus, setUploadStatus] = useState<"idle" | "processing">("idle");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -38,7 +38,8 @@ function App() {
     try {
       const res = await fetch(`${API_BASE}/documents`);
       if (!res.ok) throw new Error("Failed to fetch documents");
-      setDocuments(await res.json() as Document[]);
+      const docs = await res.json() as Document[];
+      setDocuments(docs.map((doc: Document) => ({ ...doc, id: String(doc.id) })));
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));
     }
@@ -69,25 +70,34 @@ function App() {
   async function uploadDocument(files: File[]) {
     if (!files || files.length === 0) return;
     setUploading(true);
-    setUploadStatus("uploading");
+    setUploadStatus("processing");
     setError("");
-    // Show 'Uploading...' for at least 2 seconds
-    const uploadDelay = new Promise(res => setTimeout(res, 2000));
+    let lastUploadedFilename: string | null = null;
     try {
       for (const file of files) {
         const formData = new FormData();
         formData.append("file", file);
-        const uploadPromise = fetch(`${API_BASE}/process-document`, {
+        const uploadRes = await fetch(`${API_BASE}/process-document`, {
           method: "POST",
           body: formData,
         });
-        await Promise.all([uploadPromise, uploadDelay]);
-        setUploadStatus("analyzing");
-        const res = await uploadPromise;
-        if (!res.ok) throw new Error("Upload failed");
-        await res.json();
+        if (!uploadRes.ok) throw new Error("Upload failed");
+        await uploadRes.json();
+        lastUploadedFilename = file.name;
       }
-      await fetchDocuments();
+      // Fetch documents and auto-select the newly uploaded one
+      const res = await fetch(`${API_BASE}/documents`);
+      if (!res.ok) throw new Error("Failed to fetch documents");
+      const docs = await res.json();
+      setDocuments(docs.map((doc: Document) => ({ ...doc, id: String(doc.id) })));
+      setFilterTags([]); // Clear filters so new doc is visible
+      if (lastUploadedFilename) {
+        const newDoc = docs.find((doc: Document) => doc.filename === lastUploadedFilename);
+        if (newDoc) {
+          setSelectedId(String(newDoc.id));
+          fetchDocumentDetails(String(newDoc.id));
+        }
+      }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -97,9 +107,10 @@ function App() {
     }
   }
 
-  function handleSelect(id: string) {
-    setSelectedId(id);
-    fetchDocumentDetails(id);
+  function handleSelect(id: string | number) {
+    const stringId = String(id);
+    setSelectedId(stringId);
+    fetchDocumentDetails(stringId);
   }
 
   // Update filteredDocs to match all selected tags
@@ -178,10 +189,52 @@ function App() {
     );
   };
 
+  // Debug logging for selection and document IDs
+  console.log("selectedId (type):", selectedId, typeof selectedId, "filteredDocs:", filteredDocs.map(d => [d.id, typeof d.id]));
+
+  // DocumentListItem component for filename truncation/tooltip logic
+  function DocumentListItem({ doc, selected, onSelect, getTagColorByName }: { doc: Document, selected: boolean, onSelect: (id: string) => void, getTagColorByName: (tag: string) => string }) {
+    const filenameRef = useRef<HTMLDivElement>(null);
+    const [isTruncated, setIsTruncated] = useState(false);
+    useEffect(() => {
+      const el = filenameRef.current;
+      if (el) {
+        setIsTruncated(el.scrollWidth > el.clientWidth);
+      }
+    }, [doc.filename]);
+    return (
+      <li
+        className={`group w-full flex items-start gap-4 p-2 pr-3 shadow-none cursor-pointer transition ring-0 ${selected ? "bg-blue-50" : "bg-white hover:bg-blue-50"}`}
+        onClick={() => onSelect(doc.id)}
+        style={{ transition: 'all 0.2s cubic-bezier(.4,2,.6,1)' }}
+      >
+        <FaFileAlt className="text-blue-400 text-xl shrink-0 mt-0.5" />
+        <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+          <div
+            ref={filenameRef}
+            className="font-medium text-gray-700 text-xs truncate w-full overflow-hidden whitespace-nowrap relative"
+          >
+            {doc.filename}
+            {isTruncated && (
+              <span className="pointer-events-none absolute left-0 top-full mt-1 z-50 hidden group-hover:block bg-white text-gray-900 text-[10px] px-2 py-1 rounded shadow-lg border border-gray-200 whitespace-pre-line max-w-xs min-w-[10rem] break-all">
+                {doc.filename}
+              </span>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-1 mt-1">
+            {doc.tags && doc.tags.length > 0 && doc.tags.map((tag: string) => (
+              <span key={tag} className={`px-1.5 py-0.5 rounded-full border text-[10px] font-semibold shadow-sm ${getTagColorByName(tag)}`}>{tag}</span>
+            ))}
+          </div>
+        </div>
+      </li>
+    );
+  }
+
   return (
     <div className="light flex h-screen bg-white text-gray-900">
       {/* Left: Upload Section and Document List */}
-      <aside className="w-96 flex flex-col p-5 bg-white border-r border-gray-200 shadow-2xl rounded-r-3xl min-w-[24rem] max-w-[24rem] overflow-y-auto">
+      <aside className="min-w-[19rem] max-w-[25.5rem] w-full flex flex-col p-5 bg-white border-r border-gray-200 shadow-2xl rounded-r-3xl overflow-y-auto">
         {/* Accordion for Upload Section */}
         <div className="w-full mb-8">
           <div
@@ -247,10 +300,8 @@ function App() {
                     }
                   }}
                 >
-                  {uploadStatus === "uploading"
-                    ? "Uploading..."
-                    : uploadStatus === "analyzing"
-                    ? "Analyzing with AI..."
+                  {uploadStatus === "processing"
+                    ? "Uploading and Analyzing with AI..."
                     : "Upload and Process"}
                 </button>
               )}
@@ -259,7 +310,7 @@ function App() {
           </div>
         </div>
         {/* Filter Section above Documents header */}
-        <div className="mb-2">
+        <div className="-mt-4 mb-2">
           <div className="text-xs font-bold text-blue-900 mb-1">Filters</div>
           <div className="flex items-center gap-2 flex-wrap">
             {filterTags.length === 0 ? (
@@ -274,7 +325,6 @@ function App() {
                     className="ml-2 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-150 font-bold"
                     onClick={() => setFilterTags(filterTags.filter(t => t !== tag))}
                     style={{ cursor: 'pointer' }}
-                    title="Remove filter"
                   >
                     ×
                   </span>
@@ -292,34 +342,25 @@ function App() {
           </div>
         </div>
         {/* Documents List */}
-        <h2 className="text-xl font-extrabold mb-8 tracking-tight text-blue-900">Documents</h2>
-        <ul className="flex-1 space-y-4 overflow-y-auto pr-2">
+        <h2 className="text-xl font-extrabold mb-2 mt-4 tracking-tight text-blue-900">Documents</h2>
+        <ul className="flex-1 overflow-y-auto pr-2">
           {filteredDocs.length === 0 && (
             <li className="text-gray-400 text-center mt-10">No documents found.</li>
           )}
           {filteredDocs.map((doc: Document) => (
-            <li
+            <DocumentListItem
               key={doc.id}
-              className={`flex items-start gap-4 p-2 bg-white shadow-none cursor-pointer transition ring-0 hover:bg-blue-50/80 ${selectedId === doc.id ? "bg-blue-200/60" : ""}`}
-              onClick={() => handleSelect(doc.id)}
-              style={{ transition: 'all 0.2s cubic-bezier(.4,2,.6,1)' }}
-            >
-              <FaFileAlt className="text-blue-400 text-xl shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <div className="font-medium text-gray-700 truncate text-xs">{doc.filename}</div>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {doc.tags && doc.tags.length > 0 && doc.tags.map((tag: string) => (
-                    <span key={tag} className={`px-1.5 py-0.5 rounded-full border text-[10px] font-semibold shadow-sm ${getTagColorByName(tag)}`}>{tag}</span>
-                  ))}
-                </div>
-              </div>
-            </li>
+              doc={doc}
+              selected={selectedId === doc.id}
+              onSelect={handleSelect}
+              getTagColorByName={getTagColorByName}
+            />
           ))}
         </ul>
       </aside>
       {/* Reset Demo Button at bottom left */}
       <button
-        className="fixed left-0 bottom-0 mb-8 ml-8 w-12 h-12 flex items-center justify-center rounded-full bg-white border-2 border-red-300 text-red-600 shadow-md hover:bg-red-50 hover:border-red-500 transition z-20"
+        className="fixed left-0 bottom-0 mb-6 ml-6 w-8 h-8 flex items-center justify-center rounded-full bg-white border-2 border-red-300 text-red-600 shadow-md hover:bg-red-50 hover:border-red-500 transition z-20"
         style={{ boxShadow: '0 2px 8px 0 rgba(0,0,0,0.07)' }}
         onClick={async () => {
           if (window.confirm('Are you sure you want to remove all uploaded documents and custom tags? This cannot be undone.')) {
@@ -340,14 +381,13 @@ function App() {
             }
           }
         }}
-        title="Remove all uploaded documents and custom tags (keep tag library)"
       >
-        <FaTrash className="text-xl" />
+        <FaTrash className="text-base" />
       </button>
       {/* Main Content */}
-      <main className="flex-1 flex flex-col p-14 bg-white min-w-0">
+      <main className="flex-1 flex flex-col pt-3 px-6 pb-6 bg-white min-w-0">
         {/* Tag Library */}
-        <section className="mb-8">
+        <section className="mb-8 mt-2">
           <h2 className="text-xl font-extrabold mb-4 tracking-tight text-blue-900">Tag Library</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4">
             {/* Column 1: Governance, Communications */}
