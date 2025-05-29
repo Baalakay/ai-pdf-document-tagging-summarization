@@ -101,7 +101,7 @@ filterwarnings = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/ai_support_agent"]
+packages = ["src"]
 
 [tool.hatch.build]
 include = [

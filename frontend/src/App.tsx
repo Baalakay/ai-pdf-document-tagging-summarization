@@ -306,7 +306,7 @@ function App() {
             >
               <FaFileAlt className="text-blue-400 text-xl shrink-0 mt-0.5" />
               <div className="flex-1">
-                <div className="font-semibold text-gray-900 truncate text-xs">{doc.filename}</div>
+                <div className="font-medium text-gray-700 truncate text-xs">{doc.filename}</div>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {doc.tags && doc.tags.length > 0 && doc.tags.map((tag: string) => (
                     <span key={tag} className={`px-1.5 py-0.5 rounded-full border text-[10px] font-semibold shadow-sm ${getTagColorByName(tag)}`}>{tag}</span>
@@ -354,16 +354,16 @@ function App() {
             <div className="flex flex-col">
               {tagGroups[0] && (
                 <div className="py-2">
-                  <span className="font-medium text-purple-600 text-xs mb-1">{tagGroups[0].name}</span>
-                  <div className="flex flex-wrap gap-0.5">{tagGroups[0].tags.map((tag: string) => (
+                  <span className="font-medium text-gray-700 text-xs mb-1 ml-0.5">{tagGroups[0].name}</span>
+                  <div className="flex flex-wrap gap-y-2 gap-x-0.5">{tagGroups[0].tags.map((tag: string) => (
                     <span key={tag} className={`text-[11px] px-1.5 py-0.5 rounded-full cursor-pointer transition font-semibold border shadow-sm ${getTagColorByName(tag)} ${filterTags.includes(tag) ? 'ring-2 ring-blue-400' : ''}`} onClick={() => handleTagClick(tag)} tabIndex={0} role="button" aria-pressed={filterTags.includes(tag)} style={{ transition: 'all 0.15s cubic-bezier(.4,2,.6,1)' }}>{tag}</span>
                   ))}</div>
                 </div>
               )}
               {tagGroups[3] && (
                 <div className="py-4">
-                  <span className="font-medium text-purple-600 text-xs mb-1">{tagGroups[3].name}</span>
-                  <div className="flex flex-wrap gap-0.5">{tagGroups[3].tags.map((tag: string) => (
+                  <span className="font-medium text-gray-700 text-xs mb-1 ml-0.5">{tagGroups[3].name}</span>
+                  <div className="flex flex-wrap gap-y-2 gap-x-0.5">{tagGroups[3].tags.map((tag: string) => (
                     <span key={tag} className={`text-[11px] px-1.5 py-0.5 rounded-full cursor-pointer transition font-semibold border shadow-sm ${getTagColorByName(tag)} ${filterTags.includes(tag) ? 'ring-2 ring-blue-400' : ''}`} onClick={() => handleTagClick(tag)} tabIndex={0} role="button" aria-pressed={filterTags.includes(tag)} style={{ transition: 'all 0.15s cubic-bezier(.4,2,.6,1)' }}>{tag}</span>
                   ))}</div>
                 </div>
@@ -373,16 +373,16 @@ function App() {
             <div className="flex flex-col">
               {tagGroups[1] && (
                 <div className="py-2">
-                  <span className="font-medium text-purple-600 text-xs mb-1">{tagGroups[1].name}</span>
-                  <div className="flex flex-wrap gap-0.5">{tagGroups[1].tags.map((tag: string) => (
+                  <span className="font-medium text-gray-700 text-xs mb-1 ml-0.5">{tagGroups[1].name}</span>
+                  <div className="flex flex-wrap gap-y-2 gap-x-0.5">{tagGroups[1].tags.map((tag: string) => (
                     <span key={tag} className={`text-[11px] px-1.5 py-0.5 rounded-full cursor-pointer transition font-semibold border shadow-sm ${getTagColorByName(tag)} ${filterTags.includes(tag) ? 'ring-2 ring-blue-400' : ''}`} onClick={() => handleTagClick(tag)} tabIndex={0} role="button" aria-pressed={filterTags.includes(tag)} style={{ transition: 'all 0.15s cubic-bezier(.4,2,.6,1)' }}>{tag}</span>
                   ))}</div>
                 </div>
               )}
               {tagGroups[4] && (
                 <div className="py-4">
-                  <span className="font-medium text-purple-600 text-xs mb-1">{tagGroups[4].name}</span>
-                  <div className="flex flex-wrap gap-0.5">{tagGroups[4].tags.map((tag: string) => (
+                  <span className="font-medium text-gray-700 text-xs mb-1 ml-0.5">{tagGroups[4].name}</span>
+                  <div className="flex flex-wrap gap-y-2 gap-x-0.5">{tagGroups[4].tags.map((tag: string) => (
                     <span key={tag} className={`text-[11px] px-1.5 py-0.5 rounded-full cursor-pointer transition font-semibold border shadow-sm ${getTagColorByName(tag)} ${filterTags.includes(tag) ? 'ring-2 ring-blue-400' : ''}`} onClick={() => handleTagClick(tag)} tabIndex={0} role="button" aria-pressed={filterTags.includes(tag)} style={{ transition: 'all 0.15s cubic-bezier(.4,2,.6,1)' }}>{tag}</span>
                   ))}</div>
                 </div>
@@ -392,24 +392,24 @@ function App() {
             <div className="flex flex-col">
               {tagGroups[2] && (
                 <div className="py-2">
-                  <span className="font-medium text-purple-600 text-xs mb-1">{tagGroups[2].name}</span>
-                  <div className="flex flex-wrap gap-0.5">{tagGroups[2].tags.map((tag: string) => (
+                  <span className="font-medium text-gray-700 text-xs mb-1 ml-0.5">{tagGroups[2].name}</span>
+                  <div className="flex flex-wrap gap-y-2 gap-x-0.5">{tagGroups[2].tags.map((tag: string) => (
                     <span key={tag} className={`text-[11px] px-1.5 py-0.5 rounded-full cursor-pointer transition font-semibold border shadow-sm ${getTagColorByName(tag)} ${filterTags.includes(tag) ? 'ring-2 ring-blue-400' : ''}`} onClick={() => handleTagClick(tag)} tabIndex={0} role="button" aria-pressed={filterTags.includes(tag)} style={{ transition: 'all 0.15s cubic-bezier(.4,2,.6,1)' }}>{tag}</span>
                   ))}</div>
                 </div>
               )}
               {tagGroups[5] && (
-                <div className="py-4">
-                  <span className="font-medium text-purple-600 text-xs mb-1">{tagGroups[5].name}</span>
-                  <div className="flex flex-wrap gap-0.5">{tagGroups[5].tags.map((tag: string) => (
+                <div className="py-2 mt-6">
+                  <span className="font-medium text-gray-700 text-xs mb-1 ml-0.5">{tagGroups[5].name}</span>
+                  <div className="flex flex-wrap gap-y-2 gap-x-0.5">{tagGroups[5].tags.map((tag: string) => (
                     <span key={tag} className={`text-[11px] px-1.5 py-0.5 rounded-full cursor-pointer transition font-semibold border shadow-sm ${getTagColorByName(tag)} ${filterTags.includes(tag) ? 'ring-2 ring-blue-400' : ''}`} onClick={() => handleTagClick(tag)} tabIndex={0} role="button" aria-pressed={filterTags.includes(tag)} style={{ transition: 'all 0.15s cubic-bezier(.4,2,.6,1)' }}>{tag}</span>
                   ))}</div>
                 </div>
               )}
               {tagGroups[6] && (
-                <div className="py-4">
-                  <span className="font-medium text-purple-600 text-xs mb-1">{tagGroups[6].name}</span>
-                  <div className="flex flex-wrap gap-0.5">{tagGroups[6].tags.map((tag: string) => (
+                <div className="py-6 -mt-1">
+                  <span className="font-medium text-gray-700 text-xs mb-1 ml-0.5">{tagGroups[6].name}</span>
+                  <div className="flex flex-wrap gap-y-2 gap-x-0.5">{tagGroups[6].tags.map((tag: string) => (
                     <span key={tag} className={`text-[11px] px-1.5 py-0.5 rounded-full cursor-pointer transition font-semibold border shadow-sm ${getTagColorByName(tag)} ${filterTags.includes(tag) ? 'ring-2 ring-blue-400' : ''}`} onClick={() => handleTagClick(tag)} tabIndex={0} role="button" aria-pressed={filterTags.includes(tag)} style={{ transition: 'all 0.15s cubic-bezier(.4,2,.6,1)' }}>{tag}</span>
                   ))}</div>
                 </div>
@@ -418,8 +418,8 @@ function App() {
             {/* Custom Tags */}
             {customTags.length > 0 && (
               <div className="col-span-3 w-full mb-4">
-                <span className="font-medium text-gray-600 text-xs mb-1 block">Custom</span>
-                <div className="flex flex-wrap gap-1">
+                <span className="font-medium text-gray-700 text-xs mb-1 ml-0.5 block">Custom</span>
+                <div className="flex flex-wrap gap-y-2 gap-x-1">
                   {customTags.map(tag => (
                     <span
                       key={tag}
@@ -440,9 +440,9 @@ function App() {
         </section>
         {/* Restore Document Summary section below tag library */}
         {selectedId && selectedDoc && (
-          <section className="flex-1 bg-white rounded-3xl shadow-2xl p-10 overflow-y-auto border border-gray-100">
+          <section className="bg-white rounded-3xl shadow-2xl py-6 px-4 md:px-10 overflow-y-auto border border-gray-100">
             <h3 className="text-xl font-extrabold mb-6 text-blue-900 tracking-tight">Document Summary</h3>
-            <div className="mb-4 text-gray-800 text-base leading-relaxed whitespace-pre-line font-medium">{selectedDoc.summary}</div>
+            <div className="mb-4 text-gray-700 text-base leading-relaxed whitespace-pre-line font-medium">{selectedDoc.summary}</div>
             <div className="mt-6 flex flex-wrap gap-2 items-center">
               <span className="font-semibold text-gray-700">Tags:</span>
               {selectedDoc.tags && selectedDoc.tags.length > 0 ? (
