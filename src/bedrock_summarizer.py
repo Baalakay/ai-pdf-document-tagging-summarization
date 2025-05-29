@@ -5,6 +5,8 @@ import io
 import boto3
 import logging
 from typing import List, Tuple
+import json
+import glob
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +32,20 @@ def pdf_to_jpegs(pdf_path: str, output_dir: str, jpeg_quality: int = 70, max_dim
         image_paths.append(img_path)
     return image_paths
 
-def summarize_with_claude(image_paths: List[str], prompt: str = "Please summarize the following document, considering all pages:") -> str:
+def summarize_and_tag_with_claude(image_paths: List[str], tag_library: List[str], prompt: str = None) -> Tuple[str, List[str]]:
+    if prompt is None:
+        prompt = (
+            "You are an expert document analyst. "
+            "Given the following document (as images), do the following:\n"
+            "1. Write a concise summary (2-5 sentences) of the document.\n"
+            "2. Assign no more than three tags to the document, choosing from this tag library (avoid semantic duplication, prefer existing tags, only create new tags if necessary):\n"
+            f"Tag Library: {', '.join(tag_library)}\n"
+            "If you must create new tags, ensure each new tag is general (not overly specific) and does not overlap in meaning/entity with any other tag you create.\n"
+            "If deciding between an existing domain-specific tag (e.g., 'Condo Specific', 'Bylaws', 'Reserve Fund Study') and a more general tag (e.g., 'Finance', 'Governance'), choose the existing domain-specific tag if it is relevant to the document.\n"
+            "For example, for a condominium market report, good tags might be: 'Condo Specific', 'Market Trends', 'Demographics'.\n"
+            "Avoid tags that are too specific (e.g., 'Toronto 2013 Condo Market Trends') or too general if a domain tag is available.\n"
+            "Return your response as a JSON object with two fields: 'summary' (string) and 'tags' (list of strings)."
+        )
     content = [{"text": prompt}]
     for img_path in image_paths:
         with open(img_path, "rb") as f:
@@ -46,32 +61,37 @@ def summarize_with_claude(image_paths: List[str], prompt: str = "Please summariz
     output_message = response['output']['message']
     for c in output_message['content']:
         if 'text' in c:
-            return c['text']
-    return ""
+            try:
+                result = json.loads(c['text'])
+                summary = result.get('summary', '')
+                tags = result.get('tags', [])
+                if isinstance(tags, str):
+                    tags = [t.strip() for t in tags.split(',') if t.strip()]
+                return summary, tags
+            except Exception as e:
+                logger.error(f"Failed to parse LLM response as JSON: {e}\nResponse: {c['text']}")
+                # fallback: return the whole text as summary, empty tags
+                return c['text'], []
+    return "", []
 
-def generate_tags_with_claude(summary: str, tag_library: List[str]) -> List[str]:
-    prompt = (
-        "Given the following summary, assign 2-3 tags from this tag library (avoid semantic duplication):\n"
-        f"Tag Library: {', '.join(tag_library)}\n"
-        f"Summary: {summary}\n"
-        "Return only the tags as a comma-separated list."
-    )
-    messages = [{"role": "user", "content": [{"text": prompt}]}]
-    response = bedrock_client.converse(modelId=MODEL_ID, messages=messages)
-    output_message = response['output']['message']
-    for c in output_message['content']:
-        if 'text' in c:
-            tags = [t.strip() for t in c['text'].split(',') if t.strip()]
-            # Remove semantic duplicates (simple deduplication for PoC)
-            unique_tags = []
-            for tag in tags:
-                if not any(tag.lower() in ut.lower() or ut.lower() in tag.lower() for ut in unique_tags):
-                    unique_tags.append(tag)
-            return unique_tags
-    return []
+def cleanup_previous_outputs(pdf_path: str, output_dir: str):
+    base = os.path.splitext(os.path.basename(pdf_path))[0]
+    # Remove JPEGs
+    for f in glob.glob(os.path.join(output_dir, f"{base}_page*.jpg")):
+        try:
+            os.remove(f)
+        except Exception as e:
+            logger.warning(f"Failed to remove {f}: {e}")
+    # Remove response.json if present
+    resp_path = os.path.join(output_dir, f"{base}.response.json")
+    if os.path.exists(resp_path):
+        try:
+            os.remove(resp_path)
+        except Exception as e:
+            logger.warning(f"Failed to remove {resp_path}: {e}")
 
 def process_document(pdf_path: str, output_dir: str, tag_library: List[str], max_pages: int = 5) -> Tuple[str, List[str]]:
+    cleanup_previous_outputs(pdf_path, output_dir)
     image_paths = pdf_to_jpegs(pdf_path, output_dir, max_pages=max_pages)
-    summary = summarize_with_claude(image_paths)
-    tags = generate_tags_with_claude(summary, tag_library)
+    summary, tags = summarize_and_tag_with_claude(image_paths, tag_library)
     return summary, tags 

@@ -121,3 +121,6 @@ exclude = [
 
 [tool.uv]
 package = false
+
+[tool.uv.scripts]
+backend-dev = "uvicorn src.main:app --reload"

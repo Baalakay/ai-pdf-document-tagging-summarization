@@ -1,0 +1,34 @@
+[
+  {
+    "name": "Governance",
+    "tags": [
+      "Governance", "Covenants", "Conditions", "Restrictions", "Constitution", "Declaration", "Bylaws", "Rules", "Policies", "AGM", "Code of Conduct", "Meetings", "Minutes"
+    ]
+  },
+  {
+    "name": "Condo specific",
+    "tags": [
+      "Condo Specific", "Reserve Fund Study", "Owner Issues", "Property Management", "Maintenance", "Repairs", "Construction", "Inspections", "Landscaping", "Snow Removal"
+    ]
+  },
+  {
+    "name": "Finance",
+    "tags": ["Finance", "Budgets", "Operating", "Annual"]
+  },
+  {
+    "name": "Communications",
+    "tags": ["Communications", "Newsletters", "Marketing", "Social Media", "Website"]
+  },
+  {
+    "name": "Board members orientation & onboarding",
+    "tags": ["Board Members Orientation & Onboarding"]
+  },
+  {
+    "name": "Insurance",
+    "tags": ["Insurance"]
+  },
+  {
+    "name": "Legal",
+    "tags": ["Legal", "Lawsuits", "Contract Review"]
+  }
+]
