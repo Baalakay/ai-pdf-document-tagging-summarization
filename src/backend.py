@@ -4,7 +4,7 @@ import os
 import shutil
 from src.bedrock_summarizer import process_document
 from typing import List
-from sqlalchemy import create_engine, Column, Integer, String, Text, Table, MetaData, ForeignKey, select
+from sqlalchemy import create_engine, Column, Integer, String, Text, Table, MetaData, ForeignKey, select, not_
 from sqlalchemy.orm import sessionmaker
 from fastapi.middleware.cors import CORSMiddleware
 import boto3
@@ -134,6 +134,7 @@ def process_document_api(file: UploadFile = File(...)):
             if tag_row:
                 tag_id = tag_row.id
             else:
+                # Insert new tag as-is (no truncation)
                 ins_tag = tags_table.insert().values(name=tag)
                 tag_id = session.execute(ins_tag).inserted_primary_key[0]
             tag_ids.append(tag_id)
@@ -223,4 +224,41 @@ def get_tags():
 
 @app.get("/")
 def root():
-    return {"status": "ok", "message": "Document Tagging API is running"} 
+    return {"status": "ok", "message": "Document Tagging API is running"}
+
+@app.post("/reset-documents")
+def reset_documents():
+    session = SessionLocal()
+    try:
+        # Get all document filenames
+        doc_rows = session.execute(select(documents_table.c.filename)).fetchall()
+        filenames = [row.filename for row in doc_rows]
+        # Delete PDFs from S3
+        for filename in filenames:
+            try:
+                s3_client.delete_object(Bucket=S3_BUCKET, Key=S3_DOC_PREFIX + filename)
+            except Exception as e:
+                print(f"Failed to delete {filename} from S3: {e}")
+        # Delete all document-tag links
+        session.execute(document_tags_table.delete())
+        # Delete all documents
+        session.execute(documents_table.delete())
+        # Remove custom tags (tags not in the tag library)
+        # Load tag library from S3
+        try:
+            obj = s3_client.get_object(Bucket=S3_BUCKET, Key=S3_TAGS_KEY)
+            tag_groups = json.loads(obj["Body"].read().decode("utf-8"))
+            library_tags = set()
+            for group in tag_groups:
+                for tag in group["tags"]:
+                    library_tags.add(tag)
+        except Exception as e:
+            print(f"Error loading tag_groups.json from S3: {e}")
+            library_tags = set()
+        # Delete tags not in library
+        if library_tags:
+            session.execute(tags_table.delete().where(not_(tags_table.c.name.in_(library_tags))))
+        session.commit()
+        return {"status": "ok", "message": "All uploaded documents and custom tags removed."}
+    finally:
+        session.close() 

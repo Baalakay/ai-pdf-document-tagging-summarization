@@ -40,7 +40,7 @@ def summarize_and_tag_with_claude(image_paths: List[str], tag_library: List[str]
             "1. Write a concise summary (2-5 sentences) of the document.\n"
             "2. Assign no more than three tags to the document, choosing from this tag library (avoid semantic duplication, prefer existing tags, only create new tags if necessary):\n"
             f"Tag Library: {', '.join(tag_library)}\n"
-            "If you must create new tags, ensure each new tag is general (not overly specific) and does not overlap in meaning/entity with any other tag you create.\n"
+            "If you must create new tags, ensure each new tag is general (not overly specific), does not overlap in meaning/entity with any other tag you create, and is only 1-2 words long (no more than two words).\n"
             "If deciding between an existing domain-specific tag (e.g., 'Condo Specific', 'Bylaws', 'Reserve Fund Study') and a more general tag (e.g., 'Finance', 'Governance'), choose the existing domain-specific tag if it is relevant to the document.\n"
             "For example, for a condominium market report, good tags might be: 'Condo Specific', 'Market Trends', 'Demographics'.\n"
             "Avoid tags that are too specific (e.g., 'Toronto 2013 Condo Market Trends') or too general if a domain tag is available.\n"
