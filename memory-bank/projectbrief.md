@@ -4,13 +4,13 @@
 Automatically generate tags and summaries for uploaded documents.
 
 ## Key Details
-- **Document Source:** Upload documents (PDFs, Word docs) to an S3 bucket.
+- **Document Source:** Upload documents (PDFs) via the React frontend to the FastAPI backend.
 - **Tagging Goal:** Generate 2–3 descriptive tags per document, prioritizing a provided organizational tag library.
 
-## Proposed Workflow
+## POC Workflow
 
 ### UI Features:
-- Simple interface to upload documents to S3.
+- Simple interface to upload documents via the React frontend.
 - Left panel: List of uploaded documents.
 - Right panel (top): Clickable organizational tag library for filtering documents.
 - Right panel (bottom): Display document summary when a document is selected.
@@ -19,11 +19,13 @@ Automatically generate tags and summaries for uploaded documents.
 Governance, Covenants, Conditions, and Restrictions, Constitution, Declaration, Bylaws, Rules, Policies, Code of Conduct, Meetings, Minutes, AGM, Communications, Newsletters, Marketing, Social Media, Website, Finance, Budgets, Operating, Annual, Condo Specific, Reserve Fund Study, Owner Issues, Property Management, Maintenance, Repairs, Construction, Inspections, Landscaping, Snow Removal, Board Members Orientation & Onboarding, Legal, Lawsuits, Contract Review, Insurance
 
 ### On Document Upload:
-- Extract each page as an image chunk (<3.3 MB).
-- Analyze all chunks to understand document context.
-- Use AI to assign the most relevant 2–3 tags from the provided list.
-- If no existing tags fit, create new, non-overlapping tags and add them to the tag library (avoid semantic duplication).
-- Generate a concise 2–5 sentence summary for each document.
+- FastAPI receives the PDF and saves it locally.
+- Each page is extracted as a JPEG image chunk.
+- All images are sent to AWS Bedrock for analysis as a single document.
+- AI assigns the most relevant 2–3 tags from the provided list.
+- If no existing tags fit, new, non-overlapping tags are created and added to the tag library (avoiding semantic duplication).
+- A concise 2–5 sentence summary is generated for each document.
+- Results are stored in SQLite.
 
 ### Tagging & Summarization Logic:
 - Prefer existing tags; only create new tags if necessary.
@@ -31,5 +33,5 @@ Governance, Covenants, Conditions, and Restrictions, Constitution, Declaration, 
 - Summarize document, then tag (or vice versa, as efficient).
 
 ### AI/LLM:
-- Use Claude 3.7 via AWS Bedrock for summarization and tagging.
-- AWS credentials are pre-configured. 
+- Use AWS Bedrock for summarization and tagging (configurable LLM).
+- All orchestration is handled by FastAPI. 

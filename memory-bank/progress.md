@@ -1,3 +1,18 @@
+# Progress
+
+## Backend and Frontend Scaffolding
+- Backend (FastAPI, Python, SQLite) is fully implemented.
+- Frontend (React, TypeScript, Tailwind, ShadUI) is fully implemented.
+- PDF-to-image conversion and Bedrock integration are complete.
+- Tag management and smart tag selection are implemented.
+- All features described in the README are functional.
+
+## Deprecated/Archived Steps (for POC)
+- AWS Lambda, S3 triggers, and Textract are not used in the POC implementation.
+
+## Next Steps
+- Maintenance, bug fixes, or feature requests as needed.
+
 # Step 4: Scaffolding
 
 This step is about setting up the initial project structure, tools, and configuration for both backend and frontend, based on your requirements and technology choices.
