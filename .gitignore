@@ -26,6 +26,9 @@ env/
 ENV/
 .env
 
+# Dev Container
+.devcontainer/
+
 # IDE
 .idea/
 .vscode/
