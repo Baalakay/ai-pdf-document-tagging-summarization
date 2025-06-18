@@ -22,7 +22,6 @@ This project automatically generates tags and summaries for uploaded PDF documen
 - Prevent semantic overlap/duplication in new tags.
 - Maintain a clear, reusable tag library for consistent document organization.
 
----
 
 ## Overview
 This POC demonstrates:

@@ -2,7 +2,7 @@
 # Document Tagging and Summary System (Production)
 
 ## Project Brief
-This document only outlines the PROPOSED production architecture for the Document Analysis and Tagging System. The production implementation is designed to be deployed as a separate service in the customer's AWS account, integrating with their existing document management system.
+This document only outlines the proposed production architecture for the PDF Document Tagging & Summarization system. The production implementation is designed to be deployed as a separate service in the customer's AWS account, integrating with their existing document management system.
 
 > **Note:** This document only outlines the PROPOSED AWS production architecture for implementing this solution. The current code in this repo is a PoC for demonstration purposes only, and was built to run in a local non-AWS dev environment (e.g., React, FastAPI, SQLite, etc.) as detailed in the official repository's [README.md](README.md). Refer to that file if you want to install and run this project in a local non-AWS environment.
 
@@ -24,12 +24,6 @@ This document only outlines the PROPOSED production architecture for the Documen
 - Prefer existing tags; only create new tags if necessary (max 2–3 per document).
 - Prevent semantic overlap/duplication in new tags.
 - Maintain a clear, reusable tag library for consistent document organization.
-
----
-
-
-
-
 
 ## Technical Architecture: POC Architecture vs Proposed Production
 
@@ -115,7 +109,7 @@ sequenceDiagram
 - Event-driven processing
 - Customer's existing frontend integration
 
----
+
 
 ## Overview
 The production system provides:
@@ -263,4 +257,3 @@ For production deployment, consider:
 10. Setting up CloudWatch alarms and metrics
 11. Implementing proper retry mechanisms
 12. Setting up proper logging and tracing
-
