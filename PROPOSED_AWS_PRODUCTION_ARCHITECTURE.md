@@ -1,8 +1,11 @@
-# Project Brief
 
-> **Note:** This document describes the proposed AWS production architecture for implementing this solution. The current Proof of Concept (PoC) is implemented for demonstration purposes using different technologies (e.g., React, FastAPI, SQLite, etc.) as detailed in the official repository's README.md.
+# # Document Tagging and Summary System (Production)
 
-This AWS-based production system automatically generates tags and summaries for uploaded PDF documents using a smart tag library and AI analysis. It is designed for scalable, secure integration with customer systems.
+## Project Brief
+This document only outlines the PROPOSED production architecture for the Document Analysis and Tagging System. The production implementation is designed to be deployed as a separate service in the customer's AWS account, integrating with their existing document management system.
+
+> **Note:** This document only outlines the PROPOSED production AWS production architecture for implementing this solution. The current code in this repo is a PoC for demonstration purposes only, and was built to run in a local non-AWS dev environment (e.g., React, FastAPI, SQLite, etc.) as detailed in the official repository's [README.md](README.md). Refer to that file if you want to install and run this project in a local non-AWS environment.
+
 
 **Objective:**
 - Enable customers to upload PDF documents via their existing UI to S3.
@@ -24,9 +27,95 @@ This AWS-based production system automatically generates tags and summaries for 
 
 ---
 
-# Document Analysis and Tagging System (Production)
 
-This document outlines the production architecture for the Document Analysis and Tagging System. The production implementation is designed to be deployed as a separate service in the customer's AWS account, integrating with their existing document management system.
+
+
+
+## Technical Architecture: POC Architecture vs Proposed Production
+
+```mermaid
+flowchart TB
+    subgraph "POC Architecture"
+        direction TB
+        subgraph "Frontend"
+            POC_UI["React Frontend"]
+        end
+        subgraph "Backend"
+            POC_API["FastAPI"]
+            POC_DB["SQLite"]
+            POC_Bedrock["AWS Bedrock"]
+        end
+        POC_UI -->|Upload PDF| POC_API
+        POC_API -->|Store| POC_DB
+        POC_API -->|Process| POC_Bedrock
+        POC_Bedrock -->|Results| POC_API
+    end
+    subgraph "Production Architecture"
+        direction TB
+        subgraph "Customer System"
+            Prod_UI["Customer Frontend"]
+            Prod_S3["Customer S3"]
+        end
+        subgraph "AWS Services"
+            Prod_API["API Gateway"]
+            Prod_Lambda["Lambda Functions"]
+            Prod_Dynamo["DynamoDB"]
+            Prod_Bedrock["AWS Bedrock"]
+        end
+        Prod_UI -->|Upload| Prod_S3
+        Prod_S3 -->|Event| Prod_Lambda
+        Prod_Lambda -->|Process| Prod_Bedrock
+        Prod_Bedrock -->|Results| Prod_Lambda
+        Prod_Lambda -->|Store| Prod_Dynamo
+        Prod_UI -->|Query| Prod_API
+        Prod_API -->|Route| Prod_Lambda
+        Prod_Lambda -->|Read| Prod_Dynamo
+    end
+```
+## Sequence Diagram
+
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#232F3E', 'primaryTextColor': '#fff', 'primaryBorderColor': '#232F3E', 'lineColor': '#232F3E', 'secondaryColor': '#232F3E', 'tertiaryColor': '#232F3E'}}}%%
+sequenceDiagram
+    participant User as fa:fa-user User
+    participant Frontend as fa:fa-desktop Frontend
+    participant "API Gateway" as fa:fa-aws-api-gateway API Gateway
+    participant Lambda as fa:fa-aws-lambda Lambda
+    participant S3 as fa:fa-aws-s3 S3
+    participant "Bedrock (LLM)" as fa:fa-aws-bedrock Bedrock (LLM)
+    participant DynamoDB as fa:fa-aws-dynamodb DynamoDB
+
+    User->>Frontend: Upload PDF
+    Frontend->>API Gateway: Send PDF
+    API Gateway->>Lambda: Trigger Lambda
+    Lambda->>S3: Store PDF
+    Lambda->>Lambda: Convert PDF to images
+    Lambda->>Bedrock (LLM): Send images for analysis/tagging
+    Bedrock (LLM)-->>Lambda: Return tags & summary
+    Lambda->>DynamoDB: Store results
+    Lambda->>API Gateway: Return tags & summary
+    API Gateway->>Frontend: Return tags & summary
+    Frontend->>User: Display results
+```
+
+## Key Differences
+
+### POC Architecture
+- Uses FastAPI for backend API
+- SQLite for data storage
+- Direct integration with AWS Bedrock
+- Simple React frontend
+- Local file processing
+
+### Production Architecture
+- Serverless architecture using AWS Lambda
+- DynamoDB for scalable data storage
+- API Gateway for secure API access
+- S3 for document storage
+- Event-driven processing
+- Customer's existing frontend integration
+
+---
 
 ## Overview
 The production system provides:
@@ -42,44 +131,6 @@ The production system provides:
 - Document Summarization: Generates concise summaries
 - Tag Management: Organizes tags into logical groups
 - Secure API Access: Protected endpoints for data retrieval
-
-## Technical Architecture
-
-```mermaid
-graph TB
-    subgraph Customer System
-        CustomerUI[Customer's Frontend]
-        CustomerS3[(Customer S3)]
-    end
-
-    subgraph Our Solution
-        APIGateway[API Gateway]
-        ProcessLambda[Processing Lambda]
-        QueryLambda[Query Lambda]
-        Bedrock[AWS Bedrock]
-        DynamoDB[(DynamoDB)]
-    end
-
-    subgraph Processing Steps
-        Image[PDF to Image Conversion]
-        AI[AI Analysis]
-        Results[Tag & Summary Generation]
-    end
-
-    %% Document Flow
-    CustomerUI -->|Upload| CustomerS3
-    CustomerS3 -->|Event| ProcessLambda
-    ProcessLambda -->|Convert PDF to Images| Image
-    ProcessLambda -->|Send Images| AI
-    AI -->|Generate Results| Results
-    Results -->|Store| DynamoDB
-
-    %% API Integration
-    CustomerUI -->|Query| APIGateway
-    APIGateway -->|Route| QueryLambda
-    QueryLambda -->|Read| DynamoDB
-    QueryLambda -->|Response| CustomerUI
-```
 
 ## System Components
 
@@ -211,4 +262,5 @@ For production deployment, consider:
 9. Implementing proper cleanup of temporary files
 10. Setting up CloudWatch alarms and metrics
 11. Implementing proper retry mechanisms
-12. Setting up proper logging and tracing 
+12. Setting up proper logging and tracing
+

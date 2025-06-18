@@ -1,6 +1,10 @@
-# Project Brief
+# Document Tagging and Summary System
+
+## Project Brief
 
 This project automatically generates tags and summaries for uploaded PDF documents using a smart tag library and AI analysis.
+
+> **Note:** The current Proof of Concept (PoC) code in this repo is for demonstration purposes only, and was built to run in a local non-AWS dev environment (e.g., React, FastAPI, SQLite, etc.) To see proposed AWS production architecture for implementing this solution see [PROPOSED_AWS_PRODUCTION_ARCHITECTURE.md](PROPOSED_AWS_PRODUCTION_ARCHITECTURE.md)
 
 **Objective:**
 - Upload PDF documents via a React frontend to a FastAPI backend.
@@ -19,10 +23,6 @@ This project automatically generates tags and summaries for uploaded PDF documen
 - Maintain a clear, reusable tag library for consistent document organization.
 
 ---
-
-# Document Analysis and Tagging System (POC)
-
-This is a proof-of-concept implementation demonstrating document analysis and tagging capabilities using AWS Bedrock. The POC includes a React frontend for testing and demonstration purposes.
 
 ## Overview
 This POC demonstrates:
@@ -43,37 +43,44 @@ This POC demonstrates:
 - Tag Management: Organizes tags into logical groups
 - Interactive UI: React-based interface for testing
 
-## Technical Architecture
+### System Architecture
 
 ```mermaid
-graph TB
-    subgraph Frontend
-        React[React Frontend]
+flowchart TB
+    subgraph "POC Architecture"
+        direction TB
+        subgraph "Frontend"
+            POC_UI["React Frontend"]
+        end
+        subgraph "Backend"
+            POC_API["FastAPI"]
+            POC_DB["SQLite"]
+            POC_Bedrock["AWS Bedrock"]
+        end
+        POC_UI -->|Upload PDF| POC_API
+        POC_API -->|Store| POC_DB
+        POC_API -->|Process| POC_Bedrock
+        POC_Bedrock -->|Results| POC_API
     end
+```
 
-    subgraph Backend
-        FastAPI[FastAPI Server]
-        Bedrock[AWS Bedrock]
-        SQLite[(SQLite DB)]
-    end
+### Sequence Diagram
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Backend (FastAPI)
+    participant Bedrock (LLM)
+    participant SQLite
 
-    subgraph Processing Steps
-        Image[PDF to Image Conversion]
-        AI[AI Analysis]
-        Results[Tag & Summary Generation]
-    end
-
-    %% Document Flow
-    React -->|Upload| FastAPI
-    FastAPI -->|Convert PDF to Images| Image
-    FastAPI -->|Send Images| AI
-    AI -->|Generate Results| Results
-    Results -->|Store| SQLite
-
-    %% API Integration
-    React -->|Query| FastAPI
-    FastAPI -->|Read| SQLite
-    FastAPI -->|Response| React
+    User->>Frontend: Upload PDF
+    Frontend->>Backend (FastAPI): Send PDF
+    Backend (FastAPI)->>Backend (FastAPI): Convert PDF to images
+    Backend (FastAPI)->>Bedrock (LLM): Send images for analysis/tagging
+    Bedrock (LLM)-->>Backend (FastAPI): Return tags & summary
+    Backend (FastAPI)->>SQLite: Store results
+    Backend (FastAPI)->>Frontend: Return tags & summary
+    Frontend->>User: Display results
 ```
 
 ## System Components
@@ -170,56 +177,24 @@ The following endpoints are available:
 
 ## Development Setup
 
+This project was built with and and runs with a [VS Code devcontainer](https://code.visualstudio.com/docs/devcontainers/containers). This [development-devcontainer-project-template](https://github.com/Baalakay/development-devcontainer-project-template) was used to build this project which already contains many of the dependencies required for this code repo, and automatically installs the libraries via uv (or Python) and npm (for React, Vite, Tailwinds, etc). See the README there if you are new to devcontainers and prefer to just use the [global devcontainer config](https://github.com/Baalakay/development-devcontainer-shared-config-template.git) that was used with this repo. Cloning this repo + that global devcontainer config provides everything you need to run this project.
+
 ### Prerequisites
+- [development-devcontainer-project-template](https://github.com/Baalakay/development-devcontainer-project-template) \
+(or install all relevant packages and libraries from that repo's devconfig.json, Docker file, and post-create.sh on your host instead, plus the relevant packages in this projects [pyproject.toml](pyproject.toml) and [package.json](frontend/package.json) )
 - Python 3.12+
 - Node.js 16+
 - AWS CLI configured with appropriate credentials
 - AWS Bedrock access
 
-### Backend Setup
-1. Create and activate a virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+### To Start The Backend Server (FastAPI)
 
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. Set up environment variables:
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
-
-4. Start the backend server:
    ```bash
    uvicorn src.backend:app --reload
    ```
 
-### Frontend Setup
-1. Navigate to the frontend directory:
+### To Start The Frontend Server (Vite)
+
    ```bash
-   cd frontend
+   cd frontend && npm run dev -- --host --port=5173
    ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-## Development Considerations
-For development, consider:
-1. Setting up proper error handling and logging
-2. Implementing proper security measures
-3. Adding comprehensive testing
-4. Following best practices for code organization and documentation
-
-Note: This is a POC implementation and should not be used in production without proper security measures and considerations. For production architecture details, please refer to PRODUCTION.md.
