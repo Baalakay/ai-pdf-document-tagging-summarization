@@ -4,7 +4,7 @@
 ## Project Brief
 This document only outlines the PROPOSED production architecture for the Document Analysis and Tagging System. The production implementation is designed to be deployed as a separate service in the customer's AWS account, integrating with their existing document management system.
 
-> **Note:** This document only outlines the PROPOSED production AWS production architecture for implementing this solution. The current code in this repo is a PoC for demonstration purposes only, and was built to run in a local non-AWS dev environment (e.g., React, FastAPI, SQLite, etc.) as detailed in the official repository's [README.md](README.md). Refer to that file if you want to install and run this project in a local non-AWS environment.
+> **Note:** This document only outlines the PROPOSED AWS production architecture for implementing this solution. The current code in this repo is a PoC for demonstration purposes only, and was built to run in a local non-AWS dev environment (e.g., React, FastAPI, SQLite, etc.) as detailed in the official repository's [README.md](README.md). Refer to that file if you want to install and run this project in a local non-AWS environment.
 
 
 **Objective:**
