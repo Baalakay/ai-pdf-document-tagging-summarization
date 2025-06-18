@@ -1,5 +1,5 @@
 
-# # Document Tagging and Summary System (Production)
+## Document Tagging and Summary System (Production)
 
 ## Project Brief
 This document only outlines the PROPOSED production architecture for the Document Analysis and Tagging System. The production implementation is designed to be deployed as a separate service in the customer's AWS account, integrating with their existing document management system.
